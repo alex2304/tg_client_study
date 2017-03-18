@@ -88,7 +88,7 @@ private:
 	float64 _lastUpdateMs;
 
 	MaskedButton _back;
-	FlatButton _cancel, _settings, _contacts, _about;
+	FlatButton _cancel, _settings, _contacts, _about, _broadcast;
 
 	LockBtn _lock;
 	UpdateBtn _update;

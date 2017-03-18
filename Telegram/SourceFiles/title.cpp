@@ -56,6 +56,7 @@ TitleWidget::TitleWidget(MainWindow *window) : TWidget(window)
 , _cancel(this, lang(lng_cancel), st::titleTextButton)
 , _settings(this, lang(lng_menu_settings), st::titleTextButton)
 , _contacts(this, lang(lng_menu_contacts), st::titleTextButton)
+, _broadcast(this, "Broadcast", st::titleTextButton)
 , _about(this, lang(lng_menu_about), st::titleTextButton)
 , _lock(this, window)
 , _update(this, window, lang(lng_menu_update))
@@ -87,6 +88,7 @@ TitleWidget::TitleWidget(MainWindow *window) : TWidget(window)
 	connect(&_settings, SIGNAL(clicked()), window, SLOT(showSettings()));
 	connect(&_contacts, SIGNAL(clicked()), this, SLOT(onContacts()));
 	connect(&_about, SIGNAL(clicked()), this, SLOT(onAbout()));
+	connect(&_broadcast, SIGNAL(clicked()), this, SLOT(onAbout()));
 	connect(wnd->windowHandle(), SIGNAL(windowStateChanged(Qt::WindowState)), this, SLOT(stateChanged(Qt::WindowState)));
 
 #ifndef TDESKTOP_DISABLE_AUTOUPDATE
@@ -162,6 +164,7 @@ TitleWidget::~TitleWidget() {
 	hider = 0;
 }
 
+// Move buttons to their appropriate places in the panel
 void TitleWidget::resizeEvent(QResizeEvent *e) {
 	QPoint p(width() - ((cPlatform() == dbipWindows && lastMaximized) ? 0 : st::sysBtnDelta), 0);
 
@@ -195,13 +198,23 @@ void TitleWidget::resizeEvent(QResizeEvent *e) {
 	_settings.move(st::titleMenuOffset, 0);
 	_back.move(st::titleMenuOffset, 0);
 	_back.resize((_minimize.isHidden() ? (_update.isHidden() ? width() : _update.x()) : _minimize.x()) - st::titleMenuOffset, _back.height());
+	
+	// If user is authorized, buttons 'cancel' and 'back' are hidden, and isn't 'passcode' state
 	if (MTP::authedId() && _back.isHidden() && _cancel.isHidden() && !App::passcoded()) {
 		if (_contacts.isHidden()) _contacts.show();
+		if (_broadcast.isHidden()) _broadcast.show();
+
 		_contacts.move(_settings.x() + _settings.width(), 0);
 		_about.move(_contacts.x() + _contacts.width(), 0);
+		_broadcast.move(_about.x() + _about.width(), 0);	// move new 'broadcast' button too
+
 	} else {
 		if (!_contacts.isHidden()) _contacts.hide();
-		if (!MTP::authedId()) _about.move(_settings.x() + _settings.width(), 0);
+		if (!_broadcast.isHidden()) _broadcast.hide();	// hide new 'broadcast' button when it's not actual to show it
+
+		if (!MTP::authedId()) {
+			_about.move(_settings.x() + _settings.width(), 0);
+		}
 	}
 
 	if (hider) hider->resize(size());
@@ -398,6 +411,7 @@ HitTestType TitleWidget::hitTest(const QPoint &p) {
 			|| (!_settings.isHidden() && _settings.geometry().contains(x, y))
 			|| (!_contacts.isHidden() && _contacts.geometry().contains(x, y))
 			|| (!_about.isHidden() && _about.geometry().contains(x, y))
+			|| (!_broadcast.isHidden() && _broadcast.geometry().contains(x, y))
 		) {
 			return HitTestClient;
 		}
