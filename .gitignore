@@ -18,8 +18,8 @@
 /Telegram/Resources/art/sprite_150x.png
 /Telegram/*.user
 *.vcxproj*
+!/Telegram/Telegram.vcxproj
 *.sln
-!Telegram.sln
 *.suo
 *.sdf
 *.opensdf

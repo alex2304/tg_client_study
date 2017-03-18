@@ -88,7 +88,7 @@ TitleWidget::TitleWidget(MainWindow *window) : TWidget(window)
 	connect(&_settings, SIGNAL(clicked()), window, SLOT(showSettings()));
 	connect(&_contacts, SIGNAL(clicked()), this, SLOT(onContacts()));
 	connect(&_about, SIGNAL(clicked()), this, SLOT(onAbout()));
-	connect(&_broadcast, SIGNAL(clicked()), this, SLOT(onAbout()));
+	connect(&_broadcast, SIGNAL(clicked()), this, SLOT(showBroadcast()));
 	connect(wnd->windowHandle(), SIGNAL(windowStateChanged(Qt::WindowState)), this, SLOT(stateChanged(Qt::WindowState)));
 
 #ifndef TDESKTOP_DISABLE_AUTOUPDATE

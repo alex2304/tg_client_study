@@ -32,6 +32,8 @@ class MainWidget;
 class SettingsWidget;
 class BackgroundWidget;
 class LayeredWidget;
+class BroadcastWidget;
+
 namespace Local {
 	class ClearManager;
 }
@@ -257,6 +259,8 @@ public slots:
 
 	void showSettings();
 	void hideSettings(bool fast = false);
+	void showBroadcast();
+	void hideBroadcast(bool fast=false);
 	void layerHidden();
 	void setInnerFocus();
 	void updateTitleStatus();
@@ -315,6 +319,7 @@ private:
 	IntroWidget *intro = nullptr;
 	MainWidget *main = nullptr;
 	SettingsWidget *settings = nullptr;
+	BroadcastWidget *broadcast = nullptr;
 	BackgroundWidget *layerBg = nullptr;
 	std_::unique_ptr<MediaPreviewWidget> _mediaPreview;
 

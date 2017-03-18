@@ -735,6 +735,63 @@ void MainWindow::hideSettings(bool fast) {
 	fixOrder();
 }
 
+void MainWindow::showBroadcast() {
+	if (_passcode) return;
+
+	if (isHidden()) showFromTray();
+
+	Ui::hideLayer();
+	if (broadcast) {
+		return hideBroadcast();
+	}
+	QPixmap bg = grabInner();
+
+	if (intro) {
+		return;
+	} else if (main) {
+		main->animStop_show();
+		main->hide();
+	}
+	broadcast = new BroadcastWidget(this);
+	broadcast->animShow(bg);
+	title->updateBackButton();
+
+	fixOrder();
+}
+
+void MainWindow::hideBroadcast(bool fast=false) {
+	if (!broadcast || _passcode) return;
+
+	if (fast) {
+		broadcast->stop_show();
+		broadcast->hide();
+		broadcast->deleteLater();
+		broadcast->rpcClear();
+		broadcast = 0;
+		if (intro) {
+			return;
+		} else {
+			main->show();
+		}
+	} else {
+		QPixmap bg = grabInner();
+
+		broadcast->stop_show();
+		broadcast->hide();
+		broadcast->deleteLater();
+		broadcast->rpcClear();
+		broadcast = 0;
+		if (intro) {
+			return;
+		} else {
+			main->animShow(bg, true);
+		}
+	}
+	title->updateBackButton();
+
+	fixOrder();
+}
+
 void MainWindow::mtpStateChanged(int32 dc, int32 state) {
 	if (dc == MTP::maindc()) {
 		updateTitleStatus();
