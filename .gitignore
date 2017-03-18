@@ -19,6 +19,7 @@
 /Telegram/*.user
 *.vcxproj*
 *.sln
+!Telegram.sln
 *.suo
 *.sdf
 *.opensdf
