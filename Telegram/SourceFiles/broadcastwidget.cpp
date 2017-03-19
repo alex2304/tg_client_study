@@ -25,16 +25,163 @@
 #include "autoupdater.h"
 #include "localstorage.h"
 
+BroadcastMessageField::BroadcastMessageField(BroadcastInner *parent, const style::flatTextarea &st, const QString &ph, const QString &val) : FlatTextarea(parent, st, ph, val){
+	setMinHeight(st::btnSend.height - 2 * st::sendPadding);
+	setMaxHeight(st::maxFieldHeight);
+}
+
+bool BroadcastMessageField::hasSendText() const {
+	const QString &text(getLastText());
+	for (const QChar *ch = text.constData(), *e = ch + text.size(); ch != e; ++ch) {
+		ushort code = ch->unicode();
+		if (code != ' ' && code != '\n' && code != '\r' && !chReplacedBySpace(code)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void BroadcastMessageField::onEmojiInsert(EmojiPtr emoji) {
+	if (isHidden()) return;
+	insertEmoji(emoji, textCursor());
+}
+
+void BroadcastMessageField::dropEvent(QDropEvent *e) {
+	FlatTextarea::dropEvent(e);
+	if (e->isAccepted()) {
+		App::wnd()->activateWindow();
+	}
+}
+
+bool BroadcastMessageField::canInsertFromMimeData(const QMimeData *source) const {
+	if (source->hasUrls()) {
+		int32 files = 0;
+		for (int32 i = 0; i < source->urls().size(); ++i) {
+			if (source->urls().at(i).isLocalFile()) {
+				++files;
+			}
+		}
+		if (files > 1) return false; // multiple confirm with "compressed" checkbox
+	}
+	if (source->hasImage()) return true;
+	return FlatTextarea::canInsertFromMimeData(source);
+}
+
+void BroadcastMessageField::insertFromMimeData(const QMimeData *source) {
+	// TODO: fix 'uploadFile(..)' methods
+	if (source->hasUrls()) {
+		int32 files = 0;
+		QUrl url;
+		for (int32 i = 0; i < source->urls().size(); ++i) {
+			if (source->urls().at(i).isLocalFile()) {
+				url = source->urls().at(i);
+				++files;
+			}
+		}
+		if (files == 1) {
+			//history->uploadFile(url.toLocalFile(), PrepareAuto, FileLoadAlwaysConfirm);
+			return;
+		}
+		if (files > 1) return;
+		//if (files > 1) return uploadFiles(files, PrepareAuto); // multiple confirm with "compressed" checkbox
+	}
+	if (source->hasImage()) {
+		QImage img = qvariant_cast<QImage>(source->imageData());
+		if (!img.isNull()) {
+			//history->uploadImage(img, PrepareAuto, FileLoadAlwaysConfirm, source->text());
+			return;
+		}
+	}
+	FlatTextarea::insertFromMimeData(source);
+}
+
+void BroadcastMessageField::focusInEvent(QFocusEvent *e) {
+	FlatTextarea::focusInEvent(e);
+	emit focused();
+}
+
 BroadcastInner::BroadcastInner(BroadcastWidget *parent) : TWidget(parent)
 , _self(App::self())
+, _field(this, st::taMsgField, lang(lng_message_ph))
+, _send(this, lang(lng_send_button), st::btnSend)
 {
 	if (self()) {
 		self()->loadUserpic();
-
 	}
 
+	connect(&_send, SIGNAL(clicked()), this, SLOT(onSend()));
+	connect(&_field, SIGNAL(submitted(bool)), this, SLOT(onSend(bool)));
 
 	setMouseTracking(true);
+	
+	_field.setPlaceholder("Enter message for broadcasting");
+	_field.setMaxHeight(st::maxFieldHeight);
+	_field.resize(width() + 100, 100);
+
+	moveControls();
+	showAll();
+}
+
+bool BroadcastInner::_sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo) {
+	
+	PeerData *peer = App::peer(peerId);
+	History *history = App::history(peer->id);
+
+	if (!peer || !history) {
+		// TODO: notify that it's bad peer id or history
+		return false;
+	}
+
+	WebPageId webPageId = 0;
+	bool broadcast_checked = false;
+	bool silent_checked = false;
+	App::main()->sendMessage(history, messageText, replyTo, broadcast_checked, silent_checked, webPageId);
+
+	return true;
+}
+
+void BroadcastInner::onSend(bool ctrlShiftEnter, MsgId replyTo) {
+	
+	QList<int32> recieversIds = QList<int32>();
+	recieversIds.append(313885077);
+	recieversIds.append(67419533);
+
+	for (QList<int32>::iterator peerIdIterator = recieversIds.begin(); peerIdIterator != recieversIds.end(); peerIdIterator++) {
+		_sendMessageToPeer(*peerIdIterator, _field.getLastText(), replyTo);
+	}
+
+	/*learFieldText();
+	_saveDraftText = true;
+	_saveDraftStart = getms();
+	onDraftSave();
+
+	if (!_attachMention.isHidden()) _attachMention.hideStart();
+	if (!_attachType.isHidden()) _attachType.hideStart();
+	if (!_emojiPan.isHidden()) _emojiPan.hideStart();
+
+	if (replyTo < 0) cancelReply(lastKeyboardUsed);
+	if (_previewData && _previewData->pendingTill) previewCancel();
+	_field.setFocus();
+
+	if (!_keyboard.hasMarkup() && _keyboard.forceReply() && !_kbReplyTo) onKbToggle(); */
+}
+
+
+void BroadcastInner::moveControls() {
+	int w = width(), h = height(), right = w, bottom = h, keyboardHeight = 0;
+	int maxKeyboardHeight = int(st::maxFieldHeight) - _field.height();
+	
+
+	//_field.move(0, bottom - _field.height() - st::sendPadding);
+	//_send.move(right - _send.width(), bottom - _field.height());
+	
+	// TODO: fix extra components
+	right -= _send.width();
+	//_attachEmoji.move(right - _attachEmoji.width(), buttonsBottom);
+	//right -= _attachEmoji.width();
+	right = w;
+	//_emojiPan.moveBottom(_attachEmoji.y());
+
 }
 
 void BroadcastInner::paintEvent(QPaintEvent *e) {
@@ -51,19 +198,13 @@ void BroadcastInner::paintEvent(QPaintEvent *e) {
 
 		top += st::setPhotoSize;
 
-		// contact info
+		// Information message
 		p.setFont(st::setHeaderFont->f);
 		p.setPen(st::setHeaderColor->p);
-		p.drawText(_left + st::setHeaderLeft, top + st::setHeaderTop + st::setHeaderFont->ascent, lang(lng_settings_section_contact_info));
+		p.drawText(_left + st::setHeaderLeft, top + st::setHeaderTop + st::setHeaderFont->ascent, "Enter your broadcast message and press \"Send\"");
 		top += st::setHeaderSkip;
 
 	}
-
-	// general
-	p.setFont(st::setHeaderFont->f);
-	p.setPen(st::setHeaderColor->p);
-	p.drawText(_left + st::setHeaderLeft, top + st::setHeaderTop + st::setHeaderFont->ascent, lang(lng_settings_section_general));
-	top += st::setHeaderSkip;
 
 	if (self()) {
 		
@@ -106,47 +247,17 @@ void BroadcastInner::paintEvent(QPaintEvent *e) {
 
 void BroadcastInner::resizeEvent(QResizeEvent *e) {
 	_left = (width() - st::setWidth) / 2;
-
-	int32 top = 0;
-
-	if (self()) {
-		// profile
-		top += st::setTop;
-		top += st::setPhotoSize;
-		
-		// contact info
-		top += st::setHeaderSkip;
-		top += st::linkFont->height + st::setLittleSkip;
-		
-		// notifications
-		top += st::setHeaderSkip;
-		
-	}
-
-	// general
-	top += st::setHeaderSkip;
 	
-	top += st::setVersionHeight;
+	_field.move(_left + 50, 150);
+	_send.move(_left + 50, _field.height() + 150 + st::historyPadding);
 
-	// chat options
-	if (self()) {
-		top += st::setHeaderSkip;
-		
-		top += st::setLittleSkip;
-		
-		// chat background
-		top += st::setHeaderSkip;
+	// TODO: fix extra components
+	//right -= _send.width();
+	//_attachEmoji.move(right - _attachEmoji.width(), buttonsBottom);
+	//right -= _attachEmoji.width();
+	//right = w;
+	//_emojiPan.moveBottom(_attachEmoji.y());
 
-		top += st::setBackgroundSize;
-
-		top += st::setLittleSkip;
-		
-	}
-
-	// advanced
-	top += st::setHeaderSkip;
-	
-	
 }
 
 void BroadcastInner::keyPressEvent(QKeyEvent *e) {
@@ -185,6 +296,10 @@ void BroadcastInner::mousePressEvent(QMouseEvent *e) {
 
 
 void BroadcastInner::showAll() {
+
+	_field.show();
+	_send.show();
+
 	/*// profile
 	if (self()) {
 		if (App::app()->isPhotoUpdating(self()->id)) {
@@ -388,17 +503,15 @@ void BroadcastInner::updateAdaptiveLayout() {
 
 void BroadcastInner::updateSize(int32 newWidth) {
 	// TODO: fix relative size
-	//resize(newWidth, _logOut.geometry().bottom() + st::setBottom);
+	resize(newWidth, newWidth);//this->height() - st::setBottom);
 }
 
 
 BroadcastWidget::BroadcastWidget(MainWindow *parent) : TWidget(parent)
 , _a_show(animation(this, &BroadcastWidget::step_show))
-, _scroll(this, st::setScroll)
 , _inner(this)
-, _close(this, st::setClose) {
-	_scroll.setWidget(&_inner);
-
+, _close(this, st::setClose){
+	
 	connect(App::wnd(), SIGNAL(resized(const QSize&)), this, SLOT(onParentResize(const QSize&)));
 	connect(&_close, SIGNAL(clicked()), App::wnd(), SLOT(showBroadcast()));
 
@@ -481,9 +594,9 @@ void BroadcastWidget::paintEvent(QPaintEvent *e) {
 }
 
 void BroadcastWidget::showAll() {
-	_scroll.show();
 	_inner.show();
 	_inner.showAll();
+
 	if (Adaptive::OneColumn()) {
 		_close.hide();
 	} else {
@@ -492,12 +605,10 @@ void BroadcastWidget::showAll() {
 }
 
 void BroadcastWidget::hideAll() {
-	_scroll.hide();
 	_close.hide();
 }
 
 void BroadcastWidget::resizeEvent(QResizeEvent *e) {
-	_scroll.resize(size());
 	_inner.updateSize(width());
 	_close.move(st::setClosePos.x(), st::setClosePos.y());
 }

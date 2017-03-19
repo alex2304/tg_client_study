@@ -7,8 +7,32 @@
 #include <QtWidgets/QWidget>
 
 class MainWindow;
-class Settings;
 class BroadcastWidget;
+class BroadcastInner;
+
+class BroadcastMessageField : public FlatTextarea {
+	Q_OBJECT
+
+public:
+	BroadcastMessageField(BroadcastInner *parent, const style::flatTextarea &st, const QString &ph = QString(), const QString &val = QString());
+	void dropEvent(QDropEvent *e);
+	bool canInsertFromMimeData(const QMimeData *source) const;
+	void insertFromMimeData(const QMimeData *source);
+
+	void focusInEvent(QFocusEvent *e);
+
+	bool hasSendText() const;
+
+	public slots:
+		void onEmojiInsert(EmojiPtr emoji);
+
+signals:
+	void focused();
+
+private:
+	//HistoryWidget *history;
+
+}; 
 
 class BroadcastInner : public TWidget {
 	Q_OBJECT
@@ -16,6 +40,10 @@ class BroadcastInner : public TWidget {
 public:
 
 	BroadcastInner(BroadcastWidget *parent);
+
+	bool _sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo);
+
+	void moveControls();
 
 	void paintEvent(QPaintEvent *e);
 	void resizeEvent(QResizeEvent *e);
@@ -31,10 +59,11 @@ public:
 	void updateSize(int32 newWidth);
 
 public slots:
+	void onSend(bool ctrlShiftEnter = false, MsgId replyTo = -1);
 
 private:
 
-	void setScale(DBIScale newScale);
+	//void setScale(DBIScale newScale);
 
 	UserData *_self;
 	UserData *self() const {
@@ -42,7 +71,11 @@ private:
 	}
 	int32 _left;
 	QPixmap _background;	// chat background
+	
+	FlatButton _send;
+	BroadcastMessageField _field;
 
+	QList<int32> recievers_ids;
 };
 
 class BroadcastWidget : public TWidget {
@@ -81,7 +114,7 @@ private:
 	anim::ivalue a_coordUnder, a_coordOver;
 	anim::fvalue a_shadow;
 
-	ScrollArea _scroll;
+	//ScrollArea _scroll;
 	BroadcastInner _inner;
 	IconedButton _close;
 };
