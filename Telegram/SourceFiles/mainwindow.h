@@ -193,6 +193,7 @@ public:
 
 	void noIntro(IntroWidget *was);
 	void noSettings(SettingsWidget *was);
+	void noBroadcast(BroadcastWidget * was);
 	void noMain(MainWidget *was);
 	void noBox(BackgroundWidget *was);
 	void layerFinishedHide(BackgroundWidget *was);

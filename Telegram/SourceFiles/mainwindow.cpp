@@ -32,6 +32,7 @@ Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 #include "mainwidget.h"
 #include "layerwidget.h"
 #include "settingswidget.h"
+#include "broadcastwidget.h"
 #include "boxes/confirmbox.h"
 #include "boxes/contactsbox.h"
 #include "boxes/addcontactbox.h"
@@ -759,14 +760,13 @@ void MainWindow::showBroadcast() {
 	fixOrder();
 }
 
-void MainWindow::hideBroadcast(bool fast=false) {
+void MainWindow::hideBroadcast(bool fast) {
 	if (!broadcast || _passcode) return;
 
 	if (fast) {
 		broadcast->stop_show();
 		broadcast->hide();
 		broadcast->deleteLater();
-		broadcast->rpcClear();
 		broadcast = 0;
 		if (intro) {
 			return;
@@ -779,7 +779,6 @@ void MainWindow::hideBroadcast(bool fast=false) {
 		broadcast->stop_show();
 		broadcast->hide();
 		broadcast->deleteLater();
-		broadcast->rpcClear();
 		broadcast = 0;
 		if (intro) {
 			return;
@@ -1272,6 +1271,12 @@ void MainWindow::noSettings(SettingsWidget *was) {
 		settings = 0;
 	}
 	checkHistoryActivation();
+}
+
+void MainWindow::noBroadcast(BroadcastWidget *was) {
+	if (was == broadcast) {
+		broadcast = 0;
+	}
 }
 
 void MainWindow::noMain(MainWidget *was) {
