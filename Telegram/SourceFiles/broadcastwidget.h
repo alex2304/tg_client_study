@@ -31,8 +31,7 @@ signals:
 	void focused();
 
 private:
-	//HistoryWidget *history;
-
+	
 }; 
 
 class BroadcastInner : public TWidget {
@@ -63,7 +62,6 @@ private:
 	bool _sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo);
 
 	void moveControls();
-	void updateFieldSize();
 
 	BroadcastWidget *_parent;
 	UserData *_self;
@@ -115,7 +113,6 @@ private:
 	anim::ivalue a_coordUnder, a_coordOver;
 	anim::fvalue a_shadow;
 
-	//ScrollArea _scroll;
 	BroadcastInner _inner;
 	IconedButton _close;
 };

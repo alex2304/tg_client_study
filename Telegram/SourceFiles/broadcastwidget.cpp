@@ -41,12 +41,13 @@ BroadcastInner::BroadcastInner(BroadcastWidget *parent) : TWidget(parent)
 	connect(&_field, SIGNAL(submitted(bool)), this, SLOT(onSend(bool)));
 	connect(&_field, SIGNAL(resized()), this, SLOT(onFieldResize()));
 	connect(&_emojiPan, SIGNAL(emojiSelected(EmojiPtr)), &_field, SLOT(onEmojiInsert(EmojiPtr)));
-
+	
+	_attachEmoji.installEventFilter(&_emojiPan);
+	
 	setMouseTracking(true);
 	
 	_field.setPlaceholder("Enter message for broadcasting");
 	_field.setMaxHeight(st::maxFieldHeight);
-	_field.resize(150, 150);
 
 	hideAll();
 }
