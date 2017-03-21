@@ -25,85 +25,13 @@
 #include "autoupdater.h"
 #include "localstorage.h"
 
-BroadcastMessageField::BroadcastMessageField(BroadcastInner *parent, const style::flatTextarea &st, const QString &ph, const QString &val) : FlatTextarea(parent, st, ph, val){
-	setMinHeight(st::btnSend.height - 2 * st::sendPadding);
-	setMaxHeight(st::maxFieldHeight);
-}
-
-bool BroadcastMessageField::hasSendText() const {
-	const QString &text(getLastText());
-	for (const QChar *ch = text.constData(), *e = ch + text.size(); ch != e; ++ch) {
-		ushort code = ch->unicode();
-		if (code != ' ' && code != '\n' && code != '\r' && !chReplacedBySpace(code)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void BroadcastMessageField::onEmojiInsert(EmojiPtr emoji) {
-	if (isHidden()) return;
-	insertEmoji(emoji, textCursor());
-}
-
-void BroadcastMessageField::dropEvent(QDropEvent *e) {
-	FlatTextarea::dropEvent(e);
-	if (e->isAccepted()) {
-		App::wnd()->activateWindow();
-	}
-}
-
-bool BroadcastMessageField::canInsertFromMimeData(const QMimeData *source) const {
-	if (source->hasUrls()) {
-		int32 files = 0;
-		for (int32 i = 0; i < source->urls().size(); ++i) {
-			if (source->urls().at(i).isLocalFile()) {
-				++files;
-			}
-		}
-		if (files > 1) return false; // multiple confirm with "compressed" checkbox
-	}
-	if (source->hasImage()) return true;
-	return FlatTextarea::canInsertFromMimeData(source);
-}
-
-void BroadcastMessageField::insertFromMimeData(const QMimeData *source) {
-	// TODO: fix 'uploadFile(..)' methods
-	if (source->hasUrls()) {
-		int32 files = 0;
-		QUrl url;
-		for (int32 i = 0; i < source->urls().size(); ++i) {
-			if (source->urls().at(i).isLocalFile()) {
-				url = source->urls().at(i);
-				++files;
-			}
-		}
-		if (files == 1) {
-			//history->uploadFile(url.toLocalFile(), PrepareAuto, FileLoadAlwaysConfirm);
-			return;
-		}
-		if (files > 1) return;
-		//if (files > 1) return uploadFiles(files, PrepareAuto); // multiple confirm with "compressed" checkbox
-	}
-	if (source->hasImage()) {
-		QImage img = qvariant_cast<QImage>(source->imageData());
-		if (!img.isNull()) {
-			//history->uploadImage(img, PrepareAuto, FileLoadAlwaysConfirm, source->text());
-			return;
-		}
-	}
-	FlatTextarea::insertFromMimeData(source);
-}
-
-void BroadcastMessageField::focusInEvent(QFocusEvent *e) {
-	FlatTextarea::focusInEvent(e);
-	emit focused();
-}
-
 BroadcastInner::BroadcastInner(BroadcastWidget *parent) : TWidget(parent)
 , _self(App::self())
+, _parent(parent)
 , _field(this, st::taMsgField, lang(lng_message_ph))
 , _send(this, lang(lng_send_button), st::btnSend)
+, _attachEmoji(this, st::btnAttachEmoji)
+, _emojiPan(this)
 {
 	if (self()) {
 		self()->loadUserpic();
@@ -111,15 +39,16 @@ BroadcastInner::BroadcastInner(BroadcastWidget *parent) : TWidget(parent)
 
 	connect(&_send, SIGNAL(clicked()), this, SLOT(onSend()));
 	connect(&_field, SIGNAL(submitted(bool)), this, SLOT(onSend(bool)));
+	connect(&_field, SIGNAL(resized()), this, SLOT(onFieldResize()));
+	connect(&_emojiPan, SIGNAL(emojiSelected(EmojiPtr)), &_field, SLOT(onEmojiInsert(EmojiPtr)));
 
 	setMouseTracking(true);
 	
 	_field.setPlaceholder("Enter message for broadcasting");
 	_field.setMaxHeight(st::maxFieldHeight);
-	_field.resize(width() + 100, 100);
+	_field.resize(150, 150);
 
-	moveControls();
-	showAll();
+	hideAll();
 }
 
 bool BroadcastInner::_sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo) {
@@ -168,20 +97,30 @@ void BroadcastInner::onSend(bool ctrlShiftEnter, MsgId replyTo) {
 
 
 void BroadcastInner::moveControls() {
-	int w = width(), h = height(), right = w, bottom = h, keyboardHeight = 0;
-	int maxKeyboardHeight = int(st::maxFieldHeight) - _field.height();
 	
-
-	//_field.move(0, bottom - _field.height() - st::sendPadding);
-	//_send.move(right - _send.width(), bottom - _field.height());
+	int w = width(), h = height(), right = w, bottom;
 	
-	// TODO: fix extra components
-	right -= _send.width();
-	//_attachEmoji.move(right - _attachEmoji.width(), buttonsBottom);
-	//right -= _attachEmoji.width();
-	right = w;
-	//_emojiPan.moveBottom(_attachEmoji.y());
+	bottom = h - _send.height() - st::sendPadding;
+	right -= _send.width() + st::sendPadding;
+	_send.move(right, bottom);
 
+	bottom = h - _attachEmoji.height() - st::emojiPadding;
+	right -= _attachEmoji.width() + st::emojiPadding;
+	_attachEmoji.move(right, bottom);
+
+	if (_field.width() != right - st::sendPadding) {
+		_field.resize(right, _field.height());
+	}
+	bottom = h - _field.height() - st::sendPadding;
+	right = 0; // -= _field.width() + st::sendPadding;
+	_field.move(right, bottom);
+	
+	_emojiPan.moveBottom(_attachEmoji.y());
+
+}
+
+void BroadcastInner::onFieldResize() {
+	moveControls();
 }
 
 void BroadcastInner::paintEvent(QPaintEvent *e) {
@@ -246,18 +185,13 @@ void BroadcastInner::paintEvent(QPaintEvent *e) {
 }
 
 void BroadcastInner::resizeEvent(QResizeEvent *e) {
-	_left = (width() - st::setWidth) / 2;
-	
-	_field.move(_left + 50, 150);
-	_send.move(_left + 50, _field.height() + 150 + st::historyPadding);
-
-	// TODO: fix extra components
-	//right -= _send.width();
-	//_attachEmoji.move(right - _attachEmoji.width(), buttonsBottom);
-	//right -= _attachEmoji.width();
-	//right = w;
-	//_emojiPan.moveBottom(_attachEmoji.y());
-
+	if (e) {
+		resize(e->size());
+	}
+	else {
+		setGeometry(QRect(0, 0, _parent->width(), _parent->height()));
+	}
+	moveControls();
 }
 
 void BroadcastInner::keyPressEvent(QKeyEvent *e) {
@@ -294,11 +228,18 @@ void BroadcastInner::mousePressEvent(QMouseEvent *e) {
 	}*/
 }
 
+void BroadcastInner::hideAll() {
+	_field.hide();
+	_send.hide();
+	_attachEmoji.hide();
+	_emojiPan.hide();
+}
 
 void BroadcastInner::showAll() {
 
 	_field.show();
 	_send.show();
+	_attachEmoji.show();
 
 	/*// profile
 	if (self()) {
@@ -495,21 +436,16 @@ void BroadcastInner::showAll() {
 void BroadcastInner::contextMenuEvent(QContextMenuEvent *e) {
 }
 
-void BroadcastInner::updateAdaptiveLayout() {
-	showAll();
-	resizeEvent(0);
-}
 
-
-void BroadcastInner::updateSize(int32 newWidth) {
+void BroadcastInner::updateSize(int32 newWidth, int32 newHeight) {
 	// TODO: fix relative size
-	resize(newWidth, newWidth);//this->height() - st::setBottom);
+	resize(newWidth, newHeight);
 }
 
 
 BroadcastWidget::BroadcastWidget(MainWindow *parent) : TWidget(parent)
-, _a_show(animation(this, &BroadcastWidget::step_show))
 , _inner(this)
+, _a_show(animation(this, &BroadcastWidget::step_show))
 , _close(this, st::setClose){
 	
 	connect(App::wnd(), SIGNAL(resized(const QSize&)), this, SLOT(onParentResize(const QSize&)));
@@ -517,11 +453,15 @@ BroadcastWidget::BroadcastWidget(MainWindow *parent) : TWidget(parent)
 
 	setGeometry(QRect(0, st::titleHeight, App::wnd()->width(), App::wnd()->height() - st::titleHeight));
 
+	// It should be called in order to resize inner widget
+	_inner.resizeEvent(0);
+
 	showAll();
 }
 
 void BroadcastWidget::onParentResize(const QSize &newSize) {
 	resize(newSize);
+	_inner.resize(this->size());
 }
 
 void BroadcastWidget::animShow(const QPixmap &bgAnimCache, bool back) {
@@ -606,10 +546,12 @@ void BroadcastWidget::showAll() {
 
 void BroadcastWidget::hideAll() {
 	_close.hide();
+	_inner.hideAll();
+	_inner.hide();
 }
 
 void BroadcastWidget::resizeEvent(QResizeEvent *e) {
-	_inner.updateSize(width());
+	//_inner.updateSize(width(), height());
 	_close.move(st::setClosePos.x(), st::setClosePos.y());
 }
 
@@ -620,20 +562,86 @@ void BroadcastWidget::dragEnterEvent(QDragEnterEvent *e) {
 void BroadcastWidget::dropEvent(QDropEvent *e) {
 }
 
-void BroadcastWidget::updateAdaptiveLayout() {
-	if (Adaptive::OneColumn()) {
-		_close.hide();
-	} else {
-		_close.show();
-	}
-	_inner.updateAdaptiveLayout();
-	resizeEvent(0);
-}
-
 void BroadcastWidget::setInnerFocus() {
 	_inner.setFocus();
 }
 
 BroadcastWidget::~BroadcastWidget() {
 	if (App::wnd()) App::wnd()->noBroadcast(this);
+}
+
+
+BroadcastMessageField::BroadcastMessageField(BroadcastInner *parent, const style::flatTextarea &st, const QString &ph, const QString &val) : FlatTextarea(parent, st, ph, val) {
+	setMinHeight(st::btnSend.height - 2 * st::sendPadding);
+	setMaxHeight(st::maxFieldHeight);
+}
+
+bool BroadcastMessageField::hasSendText() const {
+	const QString &text(getLastText());
+	for (const QChar *ch = text.constData(), *e = ch + text.size(); ch != e; ++ch) {
+		ushort code = ch->unicode();
+		if (code != ' ' && code != '\n' && code != '\r' && !chReplacedBySpace(code)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void BroadcastMessageField::onEmojiInsert(EmojiPtr emoji) {
+	if (isHidden()) return;
+	insertEmoji(emoji, textCursor());
+}
+
+void BroadcastMessageField::dropEvent(QDropEvent *e) {
+	FlatTextarea::dropEvent(e);
+	if (e->isAccepted()) {
+		App::wnd()->activateWindow();
+	}
+}
+
+bool BroadcastMessageField::canInsertFromMimeData(const QMimeData *source) const {
+	if (source->hasUrls()) {
+		int32 files = 0;
+		for (int32 i = 0; i < source->urls().size(); ++i) {
+			if (source->urls().at(i).isLocalFile()) {
+				++files;
+			}
+		}
+		if (files > 1) return false; // multiple confirm with "compressed" checkbox
+	}
+	if (source->hasImage()) return true;
+	return FlatTextarea::canInsertFromMimeData(source);
+}
+
+void BroadcastMessageField::insertFromMimeData(const QMimeData *source) {
+	// TODO: fix 'uploadFile(..)' methods
+	if (source->hasUrls()) {
+		int32 files = 0;
+		QUrl url;
+		for (int32 i = 0; i < source->urls().size(); ++i) {
+			if (source->urls().at(i).isLocalFile()) {
+				url = source->urls().at(i);
+				++files;
+			}
+		}
+		if (files == 1) {
+			//history->uploadFile(url.toLocalFile(), PrepareAuto, FileLoadAlwaysConfirm);
+			return;
+		}
+		if (files > 1) return;
+		//if (files > 1) return uploadFiles(files, PrepareAuto); // multiple confirm with "compressed" checkbox
+	}
+	if (source->hasImage()) {
+		QImage img = qvariant_cast<QImage>(source->imageData());
+		if (!img.isNull()) {
+			//history->uploadImage(img, PrepareAuto, FileLoadAlwaysConfirm, source->text());
+			return;
+		}
+	}
+	FlatTextarea::insertFromMimeData(source);
+}
+
+void BroadcastMessageField::focusInEvent(QFocusEvent *e) {
+	FlatTextarea::focusInEvent(e);
+	emit focused();
 }

@@ -3,6 +3,7 @@
 #include "ui/flatbutton.h"
 #include "ui/flatcheckbox.h"
 #include "sysbuttons.h"
+#include "dropdown.h"
 
 #include <QtWidgets/QWidget>
 
@@ -41,10 +42,6 @@ public:
 
 	BroadcastInner(BroadcastWidget *parent);
 
-	bool _sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo);
-
-	void moveControls();
-
 	void paintEvent(QPaintEvent *e);
 	void resizeEvent(QResizeEvent *e);
 	void keyPressEvent(QKeyEvent *e);
@@ -52,19 +49,23 @@ public:
 	void mousePressEvent(QMouseEvent *e);
 	void contextMenuEvent(QContextMenuEvent *e);
 
-	void updateAdaptiveLayout();
-
 	void showAll();
+	void hideAll();
 
-	void updateSize(int32 newWidth);
+	void updateSize(int32 newWidth, int32 newHeight);
 
 public slots:
 	void onSend(bool ctrlShiftEnter = false, MsgId replyTo = -1);
-
+	void onFieldResize();
+	
 private:
 
-	//void setScale(DBIScale newScale);
+	bool _sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo);
 
+	void moveControls();
+	void updateFieldSize();
+
+	BroadcastWidget *_parent;
 	UserData *_self;
 	UserData *self() const {
 		return App::self() ? _self : static_cast<UserData*>(0);
@@ -74,6 +75,8 @@ private:
 	
 	FlatButton _send;
 	BroadcastMessageField _field;
+	EmojiButton _attachEmoji;
+	EmojiPan _emojiPan;
 
 	QList<int32> recievers_ids;
 };
@@ -89,8 +92,6 @@ public:
 	void resizeEvent(QResizeEvent *e);
 	void dragEnterEvent(QDragEnterEvent *e);
 	void dropEvent(QDropEvent *e);
-
-	void updateAdaptiveLayout();
 
 	void animShow(const QPixmap &bgAnimCache, bool back = false);
 	void step_show(float64 ms, bool timer);
