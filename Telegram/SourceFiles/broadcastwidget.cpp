@@ -32,11 +32,13 @@ BroadcastInner::BroadcastInner(BroadcastWidget *parent) : TWidget(parent)
 , _send(this, lang(lng_send_button), st::btnSend)
 , _attachEmoji(this, st::btnAttachEmoji)
 , _emojiPan(this)
+, _close(this, st::setClose)
 {
 	if (self()) {
 		self()->loadUserpic();
 	}
 
+	connect(&_close, SIGNAL(clicked()), App::wnd(), SLOT(showBroadcast()));
 	connect(&_send, SIGNAL(clicked()), this, SLOT(onSend()));
 	connect(&_field, SIGNAL(submitted(bool)), this, SLOT(onSend(bool)));
 	connect(&_field, SIGNAL(resized()), this, SLOT(onFieldResize()));
@@ -97,7 +99,7 @@ void BroadcastInner::onSend(bool ctrlShiftEnter, MsgId replyTo) {
 }
 
 
-void BroadcastInner::moveControls() {
+void BroadcastInner::moveFieldControls() {
 	
 	int w = width(), h = height(), right = w, bottom;
 	
@@ -121,7 +123,7 @@ void BroadcastInner::moveControls() {
 }
 
 void BroadcastInner::onFieldResize() {
-	moveControls();
+	moveFieldControls();
 }
 
 void BroadcastInner::paintEvent(QPaintEvent *e) {
@@ -131,57 +133,10 @@ void BroadcastInner::paintEvent(QPaintEvent *e) {
 
 	p.setClipRect(e->rect());
 
-	int32 top = 0;
-	if (self()) {
-		
-		top += st::setTop;
-
-		top += st::setPhotoSize;
-
-		// Information message
-		p.setFont(st::setHeaderFont->f);
-		p.setPen(st::setHeaderColor->p);
-		p.drawText(_left + st::setHeaderLeft, top + st::setHeaderTop + st::setHeaderFont->ascent, "Enter your broadcast message and press \"Send\"");
-		top += st::setHeaderSkip;
-
-	}
-
-	if (self()) {
-		
-		if (animateBackground) {
-			const QPixmap &pix = App::main()->newBackgroundThumb()->pixBlurred(st::setBackgroundSize);
-
-			p.drawPixmap(_left, top, st::setBackgroundSize, st::setBackgroundSize, pix, 0, (pix.height() - st::setBackgroundSize) / 2, st::setBackgroundSize, st::setBackgroundSize);
-
-			uint64 dt = getms();
-			int32 cnt = int32(st::photoLoaderCnt), period = int32(st::photoLoaderPeriod), t = dt % period, delta = int32(st::photoLoaderDelta);
-
-			int32 x = _left + (st::setBackgroundSize - st::mediaviewLoader.width()) / 2;
-			int32 y = top + (st::setBackgroundSize - st::mediaviewLoader.height()) / 2;
-			p.fillRect(x, y, st::mediaviewLoader.width(), st::mediaviewLoader.height(), st::photoLoaderBg->b);
-
-			x += (st::mediaviewLoader.width() - cnt * st::mediaviewLoaderPoint.width() - (cnt - 1) * st::mediaviewLoaderSkip) / 2;
-			y += (st::mediaviewLoader.height() - st::mediaviewLoaderPoint.height()) / 2;
-			QColor c(st::white->c);
-			QBrush b(c);
-			for (int32 i = 0; i < cnt; ++i) {
-				t -= delta;
-				while (t < 0) t += period;
-
-				float64 alpha = (t >= st::photoLoaderDuration1 + st::photoLoaderDuration2) ? 0 : ((t > st::photoLoaderDuration1 ? ((st::photoLoaderDuration1 + st::photoLoaderDuration2 - t) / st::photoLoaderDuration2) : (t / st::photoLoaderDuration1)));
-				c.setAlphaF(st::photoLoaderAlphaMin + alpha * (1 - st::photoLoaderAlphaMin));
-				b.setColor(c);
-				p.fillRect(x + i * (st::mediaviewLoaderPoint.width() + st::mediaviewLoaderSkip), y, st::mediaviewLoaderPoint.width(), st::mediaviewLoaderPoint.height(), b);
-			}
-			QTimer::singleShot(AnimationTimerDelta, this, SLOT(updateBackgroundRect()));
-		} else {
-			p.drawPixmap(_left, top, _background);
-		}
-
-		top += st::setBackgroundSize;
-		top += st::setLittleSkip;
-		
-	}
+	// Information message
+	p.setFont(st::setHeaderFont->f);
+	p.setPen(st::setHeaderColor->p);
+	p.drawText(width() / 2 - 200, height() / 2 - st::setHeaderFont->ascent / 2, "Enter your broadcast message and press \"Send\"");
 
 }
 
@@ -189,10 +144,8 @@ void BroadcastInner::resizeEvent(QResizeEvent *e) {
 	if (e) {
 		resize(e->size());
 	}
-	else {
-		setGeometry(QRect(0, 0, _parent->width(), _parent->height()));
-	}
-	moveControls();
+	moveFieldControls();
+	_close.move(st::setClosePos.x(), st::setClosePos.y());
 }
 
 void BroadcastInner::keyPressEvent(QKeyEvent *e) {
@@ -234,204 +187,14 @@ void BroadcastInner::hideAll() {
 	_send.hide();
 	_attachEmoji.hide();
 	_emojiPan.hide();
+	_close.hide();
 }
 
 void BroadcastInner::showAll() {
-
+	_close.show();
 	_field.show();
 	_send.show();
 	_attachEmoji.show();
-
-	/*// profile
-	if (self()) {
-		if (App::app()->isPhotoUpdating(self()->id)) {
-			_cancelPhoto.show();
-			_uploadPhoto.hide();
-		}
-		else {
-			_cancelPhoto.hide();
-			_uploadPhoto.show();
-		}
-	}
-	else {
-		_uploadPhoto.hide();
-		_cancelPhoto.hide();
-	}
-
-	// contact info
-	if (self()) {
-		_chooseUsername.show();
-	}
-	else {
-		_chooseUsername.hide();
-	}
-
-	// notifications
-	if (self()) {
-		_desktopNotify.show();
-		_senderName.show();
-		_messagePreview.show();
-		if (App::wnd()->psHasNativeNotifications() && cPlatform() == dbipWindows) {
-			_windowsNotifications.show();
-		}
-		else {
-			_windowsNotifications.hide();
-		}
-		_soundNotify.show();
-		_includeMuted.show();
-	}
-	else {
-		_desktopNotify.hide();
-		_senderName.hide();
-		_messagePreview.hide();
-		_windowsNotifications.hide();
-		_soundNotify.hide();
-		_includeMuted.hide();
-	}
-
-	// general
-	_changeLanguage.show();
-#ifndef TDESKTOP_DISABLE_AUTOUPDATE
-	_autoUpdate.show();
-	setUpdatingState(_updatingState, true);
-#endif
-	if (cPlatform() == dbipWindows) {
-		_workmodeTray.show();
-		_workmodeWindow.show();
-
-		_autoStart.show();
-		_startMinimized.show();
-
-		_sendToMenu.show();
-	}
-	else {
-		if (_supportTray) {
-			_workmodeTray.show();
-		}
-		else {
-			_workmodeTray.hide();
-		}
-		_workmodeWindow.hide();
-
-		_autoStart.hide();
-		_startMinimized.hide();
-
-		_sendToMenu.hide();
-	}
-	if (cRetina()) {
-		_dpiSlider.hide();
-		_dpiAutoScale.hide();
-	}
-	else {
-		_dpiSlider.show();
-		_dpiAutoScale.show();
-	}
-
-	// chat options
-	if (self()) {
-		_replaceEmojis.show();
-		if (cReplaceEmojis()) {
-			_viewEmojis.show();
-		}
-		else {
-			_viewEmojis.hide();
-		}
-		_stickers.show();
-		_enterSend.show();
-		_ctrlEnterSend.show();
-		_dontAskDownloadPath.show();
-		if (cAskDownloadPath()) {
-			_downloadPathEdit.hide();
-			_downloadPathClear.hide();
-		}
-		else {
-			_downloadPathEdit.show();
-			if (cDownloadPath() == qsl("tmp") && _tempDirClearState == TempDirExists) { // dir exists, not clearing right now
-				_downloadPathClear.show();
-			}
-			else {
-				_downloadPathClear.hide();
-			}
-		}
-		_autoDownload.show();
-	}
-	else {
-		_replaceEmojis.hide();
-		_viewEmojis.hide();
-		_stickers.hide();
-		_enterSend.hide();
-		_ctrlEnterSend.hide();
-		_dontAskDownloadPath.hide();
-		_downloadPathEdit.hide();
-		_downloadPathClear.hide();
-		_autoDownload.hide();
-	}
-
-	// local storage
-	if (self() && _storageClearState == TempDirExists) {
-		_localStorageClear.show();
-	}
-	else {
-		_localStorageClear.hide();
-	}
-
-	// chat background
-	if (self()) {
-		_backFromGallery.show();
-		_backFromFile.show();
-		_tileBackground.show();
-		if (Global::AdaptiveLayout() == Adaptive::WideLayout) {
-			_adaptiveForWide.show();
-		}
-		else {
-			_adaptiveForWide.hide();
-		}
-	}
-	else {
-		_backFromGallery.hide();
-		_backFromFile.hide();
-		_tileBackground.hide();
-		_adaptiveForWide.hide();
-	}
-
-	// advanced
-	if (self()) {
-		_passcodeEdit.show();
-		if (cHasPasscode()) {
-			_autoLock.show();
-			_passcodeTurnOff.show();
-		}
-		else {
-			_autoLock.hide();
-			_passcodeTurnOff.hide();
-		}
-		if (_waitingConfirm.isEmpty()) {
-			_passwordEdit.show();
-		}
-		else {
-			_passwordEdit.hide();
-		}
-		if (_curPasswordSalt.isEmpty() && _waitingConfirm.isEmpty()) {
-			_passwordTurnOff.hide();
-		}
-		else {
-			_passwordTurnOff.show();
-		}
-		_showSessions.show();
-		_askQuestion.show();
-		_logOut.show();
-	}
-	else {
-		_passcodeEdit.hide();
-		_autoLock.hide();
-		_passcodeTurnOff.hide();
-		_passwordEdit.hide();
-		_passwordTurnOff.hide();
-		_showSessions.hide();
-		_askQuestion.hide();
-		_logOut.hide();
-	}
-	_telegramFAQ.show(); */
 }
 
 void BroadcastInner::contextMenuEvent(QContextMenuEvent *e) {
@@ -447,22 +210,21 @@ void BroadcastInner::updateSize(int32 newWidth, int32 newHeight) {
 BroadcastWidget::BroadcastWidget(MainWindow *parent) : TWidget(parent)
 , _inner(this)
 , _a_show(animation(this, &BroadcastWidget::step_show))
-, _close(this, st::setClose){
+, _dialogs(this)
+{
 	
 	connect(App::wnd(), SIGNAL(resized(const QSize&)), this, SLOT(onParentResize(const QSize&)));
-	connect(&_close, SIGNAL(clicked()), App::wnd(), SLOT(showBroadcast()));
 
 	setGeometry(QRect(0, st::titleHeight, App::wnd()->width(), App::wnd()->height() - st::titleHeight));
 
 	// It should be called in order to resize inner widget
 	_inner.resizeEvent(0);
-
+	
 	showAll();
 }
 
 void BroadcastWidget::onParentResize(const QSize &newSize) {
 	resize(newSize);
-	_inner.resize(this->size());
 }
 
 void BroadcastWidget::animShow(const QPixmap &bgAnimCache, bool back) {
@@ -537,23 +299,25 @@ void BroadcastWidget::paintEvent(QPaintEvent *e) {
 void BroadcastWidget::showAll() {
 	_inner.show();
 	_inner.showAll();
-
-	if (Adaptive::OneColumn()) {
-		_close.hide();
-	} else {
-		_close.show();
-	}
+	_dialogs.show();
 }
 
 void BroadcastWidget::hideAll() {
-	_close.hide();
 	_inner.hideAll();
 	_inner.hide();
+	_dialogs.hide();
 }
 
 void BroadcastWidget::resizeEvent(QResizeEvent *e) {
-	//_inner.updateSize(width(), height());
-	_close.move(st::setClosePos.x(), st::setClosePos.y());
+	if (!e) return;
+
+	int32 dialogsWidth = chatsListWidth(e->size().width());
+	_dialogs.resize(dialogsWidth, e->size().height());
+	_dialogs.move(0, 0);
+
+	_inner.setGeometry(QRect(dialogsWidth, 0, width() - dialogsWidth, height()));
+	_inner.resize(QSize(width() - dialogsWidth, height()));
+
 }
 
 void BroadcastWidget::dragEnterEvent(QDragEnterEvent *e) {

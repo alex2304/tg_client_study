@@ -21,6 +21,7 @@ Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 #pragma once
 
 class MainWidget;
+class BroadcastWidget;
 namespace Dialogs {
 class Row;
 class FakeRow;
@@ -235,6 +236,7 @@ class DialogsWidget : public TWidget, public RPCSender {
 
 public:
 	DialogsWidget(MainWidget *parent);
+	DialogsWidget(BroadcastWidget *parent);
 
 	void dialogsReceived(const MTPmessages_Dialogs &dialogs, mtpRequestId req);
 	void contactsReceived(const MTPcontacts_Contacts &contacts);

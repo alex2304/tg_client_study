@@ -27,6 +27,7 @@ Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 #include "application.h"
 #include "mainwindow.h"
 #include "dialogswidget.h"
+#include "broadcastwidget.h"
 #include "mainwidget.h"
 #include "boxes/addcontactbox.h"
 #include "boxes/contactsbox.h"
@@ -1753,6 +1754,69 @@ MsgId DialogsInner::lastSearchId() const {
 
 MsgId DialogsInner::lastSearchMigratedId() const {
 	return _lastSearchMigratedId;
+}
+
+DialogsWidget::DialogsWidget(BroadcastWidget *parent) : TWidget(parent)
+, _dragInScroll(false)
+, _dragForward(false)
+, _dialogsFull(false)
+, _dialogsOffsetDate(0)
+, _dialogsOffsetId(0)
+, _dialogsOffsetPeer(0)
+, _dialogsRequest(0)
+, _contactsRequest(0)
+, _filter(this, st::dlgFilter, lang(lng_dlg_filter))
+, _newGroup(this, st::btnNewGroup)
+, _addContact(this, st::btnAddContact)
+, _cancelSearch(this, st::btnCancelSearch)
+, _scroll(this, st::dlgScroll)
+, _inner(&_scroll, App::main())
+, _a_show(animation(this, &DialogsWidget::step_show))
+, _searchInPeer(0)
+, _searchInMigrated(0)
+, _searchFull(false)
+, _searchFullMigrated(false)
+, _peopleFull(false)
+{
+	_scroll.setWidget(&_inner);
+	_scroll.setFocusPolicy(Qt::NoFocus);
+	connect(&_inner, SIGNAL(mustScrollTo(int, int)), &_scroll, SLOT(scrollToY(int, int)));
+	connect(&_inner, SIGNAL(dialogMoved(int, int)), this, SLOT(onDialogMoved(int, int)));
+	connect(&_inner, SIGNAL(searchMessages()), this, SLOT(onNeedSearchMessages()));
+	connect(&_inner, SIGNAL(searchResultChosen()), this, SLOT(onCancel()));
+	connect(&_inner, SIGNAL(completeHashtag(QString)), this, SLOT(onCompleteHashtag(QString)));
+	connect(&_inner, SIGNAL(refreshHashtags()), this, SLOT(onFilterCursorMoved()));
+	connect(&_inner, SIGNAL(cancelSearchInPeer()), this, SLOT(onCancelSearchInPeer()));
+	connect(&_scroll, SIGNAL(geometryChanged()), &_inner, SLOT(onParentGeometryChanged()));
+	connect(&_scroll, SIGNAL(scrolled()), &_inner, SLOT(onUpdateSelected()));
+	connect(&_scroll, SIGNAL(scrolled()), this, SLOT(onListScroll()));
+	connect(&_filter, SIGNAL(cancelled()), this, SLOT(onCancel()));
+	connect(&_filter, SIGNAL(changed()), this, SLOT(onFilterUpdate()));
+	connect(&_filter, SIGNAL(cursorPositionChanged(int, int)), this, SLOT(onFilterCursorMoved(int, int)));
+	connect(parent, SIGNAL(dialogsUpdated()), this, SLOT(onListScroll()));
+	connect(&_addContact, SIGNAL(clicked()), this, SLOT(onAddContact()));
+	connect(&_newGroup, SIGNAL(clicked()), this, SLOT(onNewGroup()));
+	connect(&_cancelSearch, SIGNAL(clicked()), this, SLOT(onCancelSearch()));
+
+	_chooseByDragTimer.setSingleShot(true);
+	connect(&_chooseByDragTimer, SIGNAL(timeout()), this, SLOT(onChooseByDrag()));
+
+	setAcceptDrops(true);
+
+	_searchTimer.setSingleShot(true);
+	connect(&_searchTimer, SIGNAL(timeout()), this, SLOT(onSearchMessages()));
+
+	_scroll.show();
+	_filter.show();
+	_filter.move(st::dlgPaddingHor, st::dlgFilterPadding);
+	_filter.setFocusPolicy(Qt::StrongFocus);
+	_filter.customUpDown(true);
+	_addContact.hide();
+	_newGroup.show();
+	_cancelSearch.hide();
+	_newGroup.move(width() - _newGroup.width() - st::dlgPaddingHor, 0);
+	_addContact.move(width() - _addContact.width() - st::dlgPaddingHor, 0);
+	_cancelSearch.move(width() - _cancelSearch.width() - st::dlgPaddingHor, 0);
 }
 
 DialogsWidget::DialogsWidget(MainWidget *parent) : TWidget(parent)

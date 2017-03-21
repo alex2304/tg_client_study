@@ -4,6 +4,7 @@
 #include "ui/flatcheckbox.h"
 #include "sysbuttons.h"
 #include "dropdown.h"
+#include "dialogswidget.h"
 
 #include <QtWidgets/QWidget>
 
@@ -61,7 +62,7 @@ private:
 
 	bool _sendMessageToPeer(int32 peerId, QString messageText, MsgId replyTo);
 
-	void moveControls();
+	void moveFieldControls();
 
 	BroadcastWidget *_parent;
 	UserData *_self;
@@ -75,6 +76,8 @@ private:
 	BroadcastMessageField _field;
 	EmojiButton _attachEmoji;
 	EmojiPan _emojiPan;
+
+	IconedButton _close;
 
 	QList<int32> recievers_ids;
 };
@@ -114,5 +117,5 @@ private:
 	anim::fvalue a_shadow;
 
 	BroadcastInner _inner;
-	IconedButton _close;
+	DialogsWidget _dialogs;
 };
