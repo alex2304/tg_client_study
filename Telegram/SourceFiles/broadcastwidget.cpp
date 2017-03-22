@@ -25,6 +25,8 @@
 #include "autoupdater.h"
 #include "localstorage.h"
 
+#include "dialogs/dialogs_indexed_list.h"
+
 BroadcastInner::BroadcastInner(BroadcastWidget *parent) : TWidget(parent)
 , _self(App::self())
 , _parent(parent)
@@ -74,13 +76,15 @@ bool BroadcastInner::_sendMessageToPeer(int32 peerId, QString messageText, MsgId
 
 void BroadcastInner::onSend(bool ctrlShiftEnter, MsgId replyTo) {
 	
-	QList<int32> recieversIds = QList<int32>();
+	QList<int32> recieversIds = _parent->getRecieversIds();
 	recieversIds.append(313885077);
 	recieversIds.append(67419533);
 
 	for (QList<int32>::iterator peerIdIterator = recieversIds.begin(); peerIdIterator != recieversIds.end(); peerIdIterator++) {
 		_sendMessageToPeer(*peerIdIterator, _field.getLastText(), replyTo);
 	}
+
+	_field.clear();
 
 	/*learFieldText();
 	_saveDraftText = true;
@@ -210,16 +214,15 @@ void BroadcastInner::updateSize(int32 newWidth, int32 newHeight) {
 BroadcastWidget::BroadcastWidget(MainWindow *parent) : TWidget(parent)
 , _inner(this)
 , _a_show(animation(this, &BroadcastWidget::step_show))
-, _dialogs(this)
 {
 	
 	connect(App::wnd(), SIGNAL(resized(const QSize&)), this, SLOT(onParentResize(const QSize&)));
 
 	setGeometry(QRect(0, st::titleHeight, App::wnd()->width(), App::wnd()->height() - st::titleHeight));
 
-	// It should be called in order to resize inner widget
-	_inner.resizeEvent(0);
-	
+	_dialogs = App::main()->getDialogsWidget();
+	recievers_ids.clear();
+
 	showAll();
 }
 
@@ -299,21 +302,23 @@ void BroadcastWidget::paintEvent(QPaintEvent *e) {
 void BroadcastWidget::showAll() {
 	_inner.show();
 	_inner.showAll();
-	_dialogs.show();
+	_dialogs->setParent(this);
+	_dialogs->show();
 }
 
 void BroadcastWidget::hideAll() {
 	_inner.hideAll();
 	_inner.hide();
-	_dialogs.hide();
+	_dialogs->hide();
+	_dialogs->setParent(App::main());
 }
 
 void BroadcastWidget::resizeEvent(QResizeEvent *e) {
 	if (!e) return;
 
 	int32 dialogsWidth = chatsListWidth(e->size().width());
-	_dialogs.resize(dialogsWidth, e->size().height());
-	_dialogs.move(0, 0);
+	_dialogs->resize(dialogsWidth, e->size().height());
+	_dialogs->move(0, 0);
 
 	_inner.setGeometry(QRect(dialogsWidth, 0, width() - dialogsWidth, height()));
 	_inner.resize(QSize(width() - dialogsWidth, height()));

@@ -146,6 +146,10 @@ public:
 
 	MainWidget(MainWindow *window);
 
+	DialogsWidget* getDialogsWidget() {
+		return _dialogs;
+	};
+
 	void paintEvent(QPaintEvent *e) override;
 	void resizeEvent(QResizeEvent *e) override;
 	void keyPressEvent(QKeyEvent *e) override;

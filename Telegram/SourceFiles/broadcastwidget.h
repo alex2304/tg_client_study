@@ -78,8 +78,6 @@ private:
 	EmojiPan _emojiPan;
 
 	IconedButton _close;
-
-	QList<int32> recievers_ids;
 };
 
 class BroadcastWidget : public TWidget {
@@ -100,12 +98,33 @@ public:
 
 	void setInnerFocus();
 	
+	QList<int32> getRecieversIds() const{
+		return recievers_ids;
+	};
+
+	void clearReceiversIds() {
+		return recievers_ids.clear();
+	};
+
+	void addOrRemoveRecieverId(int32 peerId) {
+		if (!recievers_ids.contains(peerId)) {
+			recievers_ids.append(peerId);
+		}
+		else {
+			recievers_ids.removeOne(peerId);
+		}
+	}
+
+	void removeRecieverId(int32 peerId) {
+		recievers_ids.removeOne(peerId);
+	}
+
 	~BroadcastWidget();
 
 public slots:
 
 	void onParentResize(const QSize &newSize);
-
+	
 private:
 
 	void showAll();
@@ -117,5 +136,7 @@ private:
 	anim::fvalue a_shadow;
 
 	BroadcastInner _inner;
-	DialogsWidget _dialogs;
+	DialogsWidget *_dialogs;
+
+	QList<int32> recievers_ids;
 };
