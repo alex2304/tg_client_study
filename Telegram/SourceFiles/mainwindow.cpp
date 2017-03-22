@@ -396,6 +396,8 @@ MainWindow::MainWindow(QWidget *parent) : PsMainWindow(parent) {
 
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_OpaquePaintEvent);
+
+	_broadcastShown = false;
 }
 
 void MainWindow::inactivePress(bool inactive) {
@@ -755,6 +757,7 @@ void MainWindow::showBroadcast() {
 	}
 	broadcast = new BroadcastWidget(this);
 	broadcast->animShow(bg);
+	_broadcastShown = true;
 	title->updateBackButton();
 
 	fixOrder();
@@ -765,6 +768,7 @@ void MainWindow::hideBroadcast(bool fast) {
 
 	if (fast) {
 		broadcast->stop_show();
+		broadcast->hideAll();
 		broadcast->hide();
 		broadcast->deleteLater();
 		broadcast = 0;
@@ -777,6 +781,7 @@ void MainWindow::hideBroadcast(bool fast) {
 		QPixmap bg = grabInner();
 
 		broadcast->stop_show();
+		broadcast->hideAll();
 		broadcast->hide();
 		broadcast->deleteLater();
 		broadcast = 0;
@@ -786,6 +791,7 @@ void MainWindow::hideBroadcast(bool fast) {
 			main->animShow(bg, true);
 		}
 	}
+	_broadcastShown = false;
 	title->updateBackButton();
 
 	fixOrder();

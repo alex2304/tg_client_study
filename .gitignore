@@ -36,6 +36,7 @@ ipch/
 /Telegram/DebugLogs/
 /Telegram/tdata/
 /Telegram/tdumps/
+/Telegram/tupdates/
 
 .DS_Store
 ._*

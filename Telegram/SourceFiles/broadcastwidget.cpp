@@ -77,14 +77,13 @@ bool BroadcastInner::_sendMessageToPeer(int32 peerId, QString messageText, MsgId
 void BroadcastInner::onSend(bool ctrlShiftEnter, MsgId replyTo) {
 	
 	QList<int32> recieversIds = _parent->getRecieversIds();
-	recieversIds.append(313885077);
-	recieversIds.append(67419533);
-
+	
 	for (QList<int32>::iterator peerIdIterator = recieversIds.begin(); peerIdIterator != recieversIds.end(); peerIdIterator++) {
 		_sendMessageToPeer(*peerIdIterator, _field.getLastText(), replyTo);
 	}
 
 	_field.clear();
+	_parent->clearReceiversIds();
 
 	/*learFieldText();
 	_saveDraftText = true;
@@ -217,7 +216,8 @@ BroadcastWidget::BroadcastWidget(MainWindow *parent) : TWidget(parent)
 {
 	
 	connect(App::wnd(), SIGNAL(resized(const QSize&)), this, SLOT(onParentResize(const QSize&)));
-
+	connect(this, SIGNAL(hide()), this, SLOT(onHide()));
+	
 	setGeometry(QRect(0, st::titleHeight, App::wnd()->width(), App::wnd()->height() - st::titleHeight));
 
 	_dialogs = App::main()->getDialogsWidget();

@@ -132,6 +132,14 @@ public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 
+	bool isBroadcastWidgetShown() const{
+		return _broadcastShown && broadcast;
+	}
+
+	BroadcastWidget *getBroadcastWidget() const{
+		return broadcast;
+	}
+
 	void init();
 	void firstShow();
 
@@ -303,6 +311,8 @@ signals:
 	void imageLoaded();
 
 private:
+
+	bool _broadcastShown;
 
 	QPixmap grabInner();
 

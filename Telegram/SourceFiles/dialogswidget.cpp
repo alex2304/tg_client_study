@@ -333,6 +333,7 @@ void DialogsInner::onUpdateSelected(bool force) {
 		auto newImportantSwitchSel = (importantDialogs && mouseY >= 0 && mouseY < dialogsOffset());
 		mouseY -= dialogsOffset();
 		auto newSel = newImportantSwitchSel ? nullptr : shownDialogs()->rowAtY(mouseY, st::dlgHeight);
+
 		if (newSel != _sel || newImportantSwitchSel != _importantSwitchSel) {
 			updateSelectedRow();
 			_sel = newSel;
@@ -1525,6 +1526,13 @@ bool DialogsInner::choosePeer() {
 		if (msgId > 0) {
 			saveRecentHashtags(_filter);
 		}
+
+		// TODO: take into account different cases
+		if (App::wnd()->isBroadcastWidgetShown()) {
+			int32 _receiverId = history->peer->id;
+			App::wnd()->getBroadcastWidget()->addOrRemoveRecieverId(_receiverId);
+		}
+
 		bool chosen = (!App::main()->selectingPeer(true) && (_state == FilteredState || _state == SearchedState) && _filteredSel >= 0 && _filteredSel < _filterResults.size());
 		App::main()->choosePeer(history->peer->id, msgId);
 		if (chosen) {

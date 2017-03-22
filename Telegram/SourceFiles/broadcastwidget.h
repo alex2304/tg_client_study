@@ -96,6 +96,7 @@ public:
 	void step_show(float64 ms, bool timer);
 	void stop_show();
 
+
 	void setInnerFocus();
 	
 	QList<int32> getRecieversIds() const{
@@ -119,6 +120,9 @@ public:
 		recievers_ids.removeOne(peerId);
 	}
 
+	void hideAll();
+	void showAll();
+
 	~BroadcastWidget();
 
 public slots:
@@ -126,9 +130,6 @@ public slots:
 	void onParentResize(const QSize &newSize);
 	
 private:
-
-	void showAll();
-	void hideAll();
 
 	Animation _a_show;
 	QPixmap _cacheUnder, _cacheOver;
