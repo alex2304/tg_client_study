@@ -1,22 +1,28 @@
-/out/
-/Debug/
-/Release/
-/Deploy/
 /Telegram/build/target
 /Telegram/GeneratedFiles/
+/Telegram/SourceFiles/art/grid.png
+/Telegram/SourceFiles/art/grid_125x.png
+/Telegram/SourceFiles/art/grid_150x.png
+/Telegram/SourceFiles/art/grid_200x.png
+/Telegram/SourceFiles/art/sprite_125x.png
+/Telegram/SourceFiles/art/sprite_150x.png
+/Telegram/Resources/art/grid.png
+/Telegram/Resources/art/grid_125x.png
+/Telegram/Resources/art/grid_150x.png
+/Telegram/Resources/art/grid_200x.png
+/Telegram/Resources/art/sprite_125x.png
+/Telegram/Resources/art/sprite_150x.png
 /Telegram/*.user
-*.vcxproj*
-!/Telegram/Telegram.vcxproj
-*.sln
+*.vcxproj.user
 *.suo
 *.sdf
 *.opensdf
 *.opendb
 *.VC.db
 *.aps
-*.xcodeproj
 /Win32/
 ipch/
+.travis
 
 /Telegram/log.txt
 /Telegram/data
@@ -24,7 +30,6 @@ ipch/
 /Telegram/DebugLogs/
 /Telegram/tdata/
 /Telegram/tdumps/
-/Telegram/tupdates/
 
 .DS_Store
 ._*
@@ -38,6 +43,3 @@ xcuserdata
 /Linux/
 /Telegram/Makefile
 *.*~
-
-Telegram.VC
-.travis
