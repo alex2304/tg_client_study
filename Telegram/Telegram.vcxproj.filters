@@ -477,18 +477,6 @@
     <ClCompile Include="SourceFiles\lang.cpp">
       <Filter>SourceFiles</Filter>
     </ClCompile>
-    <ClCompile Include="SourceFiles\boxes\languagebox.cpp">
-      <Filter>SourceFiles\boxes</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Deploy\moc_languagebox.cpp">
-      <Filter>GeneratedFiles\Deploy</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_languagebox.cpp">
-      <Filter>GeneratedFiles\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_languagebox.cpp">
-      <Filter>GeneratedFiles\Release</Filter>
-    </ClCompile>
     <ClCompile Include="SourceFiles\boxes\backgroundbox.cpp">
       <Filter>SourceFiles\boxes</Filter>
     </ClCompile>
@@ -1380,9 +1368,6 @@
     </CustomBuild>
     <CustomBuild Include="SourceFiles\localstorage.h">
       <Filter>SourceFiles</Filter>
-    </CustomBuild>
-    <CustomBuild Include="SourceFiles\boxes\languagebox.h">
-      <Filter>SourceFiles\boxes</Filter>
     </CustomBuild>
     <CustomBuild Include="SourceFiles\boxes\backgroundbox.h">
       <Filter>SourceFiles\boxes</Filter>

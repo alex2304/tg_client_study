@@ -33,7 +33,6 @@ Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 #include "boxes/confirmbox.h"
 #include "boxes/downloadpathbox.h"
 #include "boxes/usernamebox.h"
-#include "boxes/languagebox.h"
 #include "boxes/passcodebox.h"
 #include "boxes/autolockbox.h"
 #include "boxes/sessionsbox.h"
@@ -246,7 +245,7 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 	connect(&_includeMuted, SIGNAL(changed()), this, SLOT(onIncludeMuted()));
 
 	// general
-	connect(&_changeLanguage, SIGNAL(clicked()), this, SLOT(onChangeLanguage()));
+	//connect(&_changeLanguage, SIGNAL(clicked()), this, SLOT(onChangeLanguage()));
 	#ifndef TDESKTOP_DISABLE_AUTOUPDATE
 	connect(&_autoUpdate, SIGNAL(changed()), this, SLOT(onAutoUpdate()));
 	connect(&_checkNow, SIGNAL(clicked()), this, SLOT(onCheckNow()));
@@ -1272,7 +1271,7 @@ void SettingsInner::chooseCustomLang() {
 				save = result.value(lng_box_ok, langOriginal(lng_box_ok)),
 				cancel = result.value(lng_cancel, langOriginal(lng_cancel));
             ConfirmBox *box = new ConfirmBox(text, save, st::defaultBoxButton, cancel);
-            connect(box, SIGNAL(confirmed()), this, SLOT(onSaveTestLang()));
+           // connect(box, SIGNAL(confirmed()), this, SLOT(onSaveTestLang()));
 			Ui::showLayer(box);
         } else {
 			Ui::showLayer(new InformBox("Custom lang failed :(\n\nError: " + loader.errors()));
@@ -1280,21 +1279,7 @@ void SettingsInner::chooseCustomLang() {
     }
 }
 
-void SettingsInner::onChangeLanguage() {
-	if ((_changeLanguage.clickModifiers() & Qt::ShiftModifier) && (_changeLanguage.clickModifiers() & Qt::AltModifier)) {
-        chooseCustomLang();
-	} else {
-		Ui::showLayer(new LanguageBox());
-	}
-}
 
-void SettingsInner::onSaveTestLang() {
-	cSetLangFile(_testlang);
-	cSetLang(languageTest);
-	Local::writeSettings();
-	cSetRestarting(true);
-	App::quit();
-}
 
 void SettingsInner::onUpdateLocalStorage() {
 	resizeEvent(0);
