@@ -37,6 +37,7 @@ _close(this, lang(lng_box_ok), st::defaultBoxButton) {
 
 	int32 y = st::boxTitleHeight + st::boxOptionListPadding.top();
 	_langs.reserve(languageCount + (haveTestLang ? 1 : 0));
+
 	if (haveTestLang) {
 		_langs.push_back(new Radiobutton(this, qsl("lang"), languageTest, qsl("Custom Lang"), (cLang() == languageTest), st::langsButton));
 		_langs.back()->move(st::boxPadding.left() + st::boxOptionListPadding.left(), y);

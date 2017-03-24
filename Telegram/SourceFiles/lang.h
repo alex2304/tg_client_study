@@ -22,12 +22,6 @@ Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 
 constexpr const str_const LanguageCodes[] = {
 	"en",
-	"it",
-	"es",
-	"de",
-	"nl",
-	"pt_BR",
-	"ko",
 };
 constexpr const int languageTest = -1, languageDefault = 0, languageCount = arraysize(LanguageCodes);
 
