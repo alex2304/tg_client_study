@@ -1,3 +1,7 @@
+/out/
+/Debug/
+/Release/
+/Deploy/
 /Telegram/build/target
 /Telegram/GeneratedFiles/
 /Telegram/SourceFiles/art/grid.png
@@ -30,6 +34,7 @@ ipch/
 /Telegram/DebugLogs/
 /Telegram/tdata/
 /Telegram/tdumps/
+/Telegram/tupdates/
 
 .DS_Store
 ._*
