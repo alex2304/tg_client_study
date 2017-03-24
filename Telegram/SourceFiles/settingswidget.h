@@ -178,9 +178,6 @@ public slots:
 	void onPhotoUpdateFail(PeerId peer);
 	void onPhotoUpdateStart();
 
-	void onChangeLanguage();
-	void onSaveTestLang();
-
 	void onUpdateLocalStorage();
 
 	void onAskQuestion();
@@ -223,7 +220,6 @@ private:
 	FlatCheckbox _desktopNotify, _senderName, _messagePreview, _windowsNotifications, _soundNotify, _includeMuted;
 
 	// general
-	LinkButton _changeLanguage;
 	#ifndef TDESKTOP_DISABLE_AUTOUPDATE
 	FlatCheckbox _autoUpdate;
 	LinkButton _checkNow, _restartNow;

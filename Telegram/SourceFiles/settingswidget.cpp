@@ -133,7 +133,6 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 , _includeMuted(this, lang(lng_settings_include_muted), cIncludeMuted())
 
 // general
-, _changeLanguage(this, lang(lng_settings_change_lang))
 #ifndef TDESKTOP_DISABLE_AUTOUPDATE
 , _autoUpdate(this, lang(lng_settings_auto_update), cAutoUpdate())
 , _checkNow(this, lang(lng_settings_check_now))
@@ -245,7 +244,6 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 	connect(&_includeMuted, SIGNAL(changed()), this, SLOT(onIncludeMuted()));
 
 	// general
-	//connect(&_changeLanguage, SIGNAL(clicked()), this, SLOT(onChangeLanguage()));
 	#ifndef TDESKTOP_DISABLE_AUTOUPDATE
 	connect(&_autoUpdate, SIGNAL(changed()), this, SLOT(onAutoUpdate()));
 	connect(&_checkNow, SIGNAL(clicked()), this, SLOT(onCheckNow()));
@@ -696,7 +694,6 @@ void SettingsInner::resizeEvent(QResizeEvent *e) {
 
 	// general
 	top += st::setHeaderSkip;
-	_changeLanguage.move(_left + st::setWidth - _changeLanguage.width(), top - st::setHeaderSkip + st::setHeaderTop + st::setHeaderFont->ascent - st::linkFont->ascent);
 	#ifndef TDESKTOP_DISABLE_AUTOUPDATE
 	_autoUpdate.move(_left, top);
 	_checkNow.move(_left + st::setWidth - _checkNow.width(), top + st::cbDefFlat.textTop); top += _autoUpdate.height();
@@ -812,8 +809,6 @@ void SettingsInner::keyPressEvent(QKeyEvent *e) {
 			Ui::showLayer(box);
 			from = size;
 			break;
-		} else if (str == qstr("loadlang")) {
-			chooseCustomLang();
 		} else if (str == qstr("debugfiles") && cDebug()) {
 			if (DebugLogging::FileLoader()) {
 				Global::RefDebugLoggingFlags() &= ~DebugLogging::FileLoaderFlag;
@@ -833,7 +828,6 @@ void SettingsInner::keyPressEvent(QKeyEvent *e) {
 		} else if (
 			qsl("debugmode").startsWith(str) ||
 			qsl("testmode").startsWith(str) ||
-			qsl("loadlang").startsWith(str) ||
 			qsl("debugfiles").startsWith(str) ||
 			qsl("workmode").startsWith(str) ||
 			qsl("crashplease").startsWith(str)) {
@@ -1047,7 +1041,6 @@ void SettingsInner::showAll() {
 	}
 
 	// general
-	_changeLanguage.show();
 	#ifndef TDESKTOP_DISABLE_AUTOUPDATE
 	_autoUpdate.show();
 	setUpdatingState(_updatingState, true);
