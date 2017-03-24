@@ -30,6 +30,7 @@ ipch/
 /Telegram/DebugLogs/
 /Telegram/tdata/
 /Telegram/tdumps/
+/Telegram/tupdates/
 
 .DS_Store
 ._*
@@ -41,5 +42,7 @@ xcuserdata
 /Telegram/*.user.*
 *.pro.user
 /Linux/
+/Telegram/Makefile
+*.*~
 /Telegram/Makefile
 *.*~
