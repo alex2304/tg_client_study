@@ -20,17 +20,34 @@ Copyright (c) 2014-2016 John Preston, https://desktop.telegram.org
 */
 #pragma once
 
-constexpr const str_const LanguageCodes[] = {
-	"en",
+class SingleLang {
+public:
+	static SingleLang& getInstance() {
+		static SingleLang theSingleLangInstance;
+		return theSingleLangInstance;
+	}
+	static string getLangCode() {
+		return LanguageCode;
+	}
+private:
+	static string LanguageCode;
+	SingleLang() { }
+	~SingleLang() {
+		LanguageCode = "en";
+	}
 };
-constexpr const int languageTest = -1, languageDefault = 0, languageCount = arraysize(LanguageCodes);
+
+constexpr const int languageTest = -1, languageDefault = 0;
+const SingleLang& singleLang = SingleLang::getInstance();
+
+
 
 class LangString : public QString {
 public:
 	LangString() {
 	}
 	LangString(const QString &str) : QString(str) {
-	}
+	} 
 
 	LangString tag(ushort tag, const QString &replacement) {
 		for (const QChar *s = constData(), *ch = s, *e = ch + size(); ch != e;) {

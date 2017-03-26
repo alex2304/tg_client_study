@@ -100,3 +100,4 @@ QString Translator::translate(const char *context, const char *sourceText, const
 	}
 	return QString();
 }
+

@@ -1065,9 +1065,9 @@ namespace {
 			stream >> v;
 			if (!_checkStreamStatus(stream)) return false;
 
-			if (v == languageTest || (v >= 0 && v < languageCount)) {
+			//if (v == languageTest || (v >= 0 && v < languageCount)) {
 				cSetLang(v);
-			}
+			//}
 		} break;
 
 		case dbiLangFile: {

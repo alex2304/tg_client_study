@@ -465,12 +465,9 @@ void start() {
 	SandboxData->LangSystemISO = psCurrentLanguage();
 	if (SandboxData->LangSystemISO.isEmpty()) SandboxData->LangSystemISO = qstr("en");
 	QByteArray l = LangSystemISO().toLatin1();
-	for (int32 i = 0; i < languageCount; ++i) {
-		if (l.at(0) == LanguageCodes[i][0] && l.at(1) == LanguageCodes[i][1]) {
-			SandboxData->LangSystem = i;
-			break;
+	if (l.at(0) == singleLang.getLangCode()[0] && l.at(1) == singleLang.getLangCode()[1]) {
+			SandboxData->LangSystem = 0;
 		}
-	}
 }
 
 void finish() {

@@ -1062,18 +1062,11 @@ void executeParsedCommand(const QString &command) {
 #define NEW_VER_KEY lng_new_version_text
 #define NEW_VER_POSTFIX
 #endif
-
-		for (int i = 0; i < languageCount; ++i) {
-			LangLoaderResult result;
-			if (i) {
-				LangLoaderPlain loader(qsl(":/langs/lang_") + LanguageCodes[i].c_str() + qsl(".strings"), LangLoaderRequest(lng_language_name, NEW_VER_KEY));
-				result = loader.found();
-			} else {
-				result.insert(lng_language_name, langOriginal(lng_language_name));
-				result.insert(NEW_VER_KEY, langOriginal(NEW_VER_KEY));
-			}
-			App::wnd()->serviceNotification(result.value(lng_language_name, LanguageCodes[i].c_str() + qsl(" language")) + qsl(":\n\n") + LangString(result.value(NEW_VER_KEY, qsl("--none--")))NEW_VER_POSTFIX);
-		}
+	LangLoaderResult result;
+	result.insert(lng_language_name, langOriginal(lng_language_name));
+	result.insert(NEW_VER_KEY, langOriginal(NEW_VER_KEY));
+	App::wnd()->serviceNotification(result.value(lng_language_name, singleLang.getLangCode().c_str() + qsl(" language")) + qsl(":\n\n") + LangString(result.value(NEW_VER_KEY, qsl("--none--")))NEW_VER_POSTFIX);
+	
 
 #undef NEW_VER_POSTFIX
 #undef NEW_VER_KEY

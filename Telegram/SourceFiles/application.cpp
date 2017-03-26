@@ -680,8 +680,8 @@ AppClass::AppClass() : QObject()
 		} else {
 			cSetLang(languageDefault);
 		}
-	} else if (cLang() > languageDefault && cLang() < languageCount) {
-		LangLoaderPlain loader(qsl(":/langs/lang_") + LanguageCodes[cLang()].c_str() + qsl(".strings"));
+	} else {
+		LangLoaderPlain loader(qsl(":/langs/lang_") + singleLang.getLangCode().c_str() + qsl(".strings"));
 		if (!loader.errors().isEmpty()) {
 			LOG(("Lang load errors: %1").arg(loader.errors()));
 		} else if (!loader.warnings().isEmpty()) {
