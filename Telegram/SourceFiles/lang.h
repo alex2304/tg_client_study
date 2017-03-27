@@ -26,19 +26,36 @@ public:
 		static SingleLang theSingleLangInstance;
 		return theSingleLangInstance;
 	}
-	static string getLangCode() {
+	static constexpr const str_const getLangCode() {
 		return LanguageCode;
 	}
 private:
-	static string LanguageCode;
-	SingleLang() { }
-	~SingleLang() {
-		LanguageCode = "en";
+	static constexpr const str_const LanguageCode = "en";
+	SingleLang() {
+		//LanguageCode = "en";
 	}
+	//~SingleLang() { }
 };
 
+/*
+class SingleLang {
+	private:
+		static SingleLang* theSingleLangInstance;
+		SingleLang(){}
+		SingleLang(const SingleLang&);
+		
+	public:
+		static SingleLang* getLang() {
+			if (!theSingleLangInstance)
+				theSingleLangInstance = new SingleLang();
+			return theSingleLangInstance;
+		}
+
+};*/
+
+static SingleLang singleLang = SingleLang::getInstance();
 constexpr const int languageTest = -1, languageDefault = 0;
-const SingleLang& singleLang = SingleLang::getInstance();
+//const SingleLang& singleLang = SingleLang::getInstance();
 
 
 
