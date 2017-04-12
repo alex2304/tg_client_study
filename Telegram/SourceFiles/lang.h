@@ -31,31 +31,12 @@ public:
 	}
 private:
 	static constexpr const str_const LanguageCode = "en";
-	SingleLang() {
-		//LanguageCode = "en";
-	}
-	//~SingleLang() { }
+	SingleLang() {}
 };
 
-/*
-class SingleLang {
-	private:
-		static SingleLang* theSingleLangInstance;
-		SingleLang(){}
-		SingleLang(const SingleLang&);
-		
-	public:
-		static SingleLang* getLang() {
-			if (!theSingleLangInstance)
-				theSingleLangInstance = new SingleLang();
-			return theSingleLangInstance;
-		}
-
-};*/
 
 static SingleLang singleLang = SingleLang::getInstance();
 constexpr const int languageTest = -1, languageDefault = 0;
-//const SingleLang& singleLang = SingleLang::getInstance();
 
 
 
