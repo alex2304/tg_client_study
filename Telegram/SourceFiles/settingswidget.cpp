@@ -143,6 +143,8 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 , _workmodeTray(this, lang(lng_settings_workmode_tray), (cWorkMode() == dbiwmTrayOnly || cWorkMode() == dbiwmWindowAndTray))
 , _workmodeWindow(this, lang(lng_settings_workmode_window), (cWorkMode() == dbiwmWindowOnly || cWorkMode() == dbiwmWindowAndTray))
 
+, _ctrl_w_mode_window(this, lang(lng_settings_ctrl_w_mode), _ctrl_w_mode)
+
 , _autoStart(this, lang(lng_settings_auto_start), cAutoStart())
 , _startMinimized(this, lang(lng_settings_start_min), cStartMinimized())
 , _sendToMenu(this, lang(lng_settings_add_sendto), cSendToMenu())
@@ -257,6 +259,7 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 	connect(&_autoStart, SIGNAL(changed()), this, SLOT(onAutoStart()));
 	connect(&_startMinimized, SIGNAL(changed()), this, SLOT(onStartMinimized()));
 	connect(&_sendToMenu, SIGNAL(changed()), this, SLOT(onSendToMenu()));
+	//connect(&_ctrl_w_mode_window, SIGNAL(changed()), this, )
 
 	connect(&_dpiAutoScale, SIGNAL(changed()), this, SLOT(onScaleAuto()));
 	connect(&_dpiSlider, SIGNAL(changed(int32)), this, SLOT(onScaleChange()));
@@ -488,6 +491,9 @@ void SettingsInner::paintEvent(QPaintEvent *e) {
         top += _autoStart.height() + st::setLittleSkip;
         top += _startMinimized.height() + st::setSectionSkip;
 
+		top += _ctrl_w_mode_window.height() + st::setSectionSkip;
+
+
 		top += _sendToMenu.height();
     } else if (_supportTray) {
 		top += _workmodeTray.height();
@@ -707,6 +713,9 @@ void SettingsInner::resizeEvent(QResizeEvent *e) {
 
         _autoStart.move(_left, top); top += _autoStart.height() + st::setLittleSkip;
         _startMinimized.move(_left, top); top += _startMinimized.height() + st::setSectionSkip;
+
+		_ctrl_w_mode_window.move(_left, top); top += _ctrl_w_mode_window.height() + st::setLittleSkip;
+
 
 		_sendToMenu.move(_left, top); top += _sendToMenu.height();
     } else if (_supportTray) {
@@ -1053,12 +1062,16 @@ void SettingsInner::showAll() {
         _startMinimized.show();
 
 		_sendToMenu.show();
+
+		_ctrl_w_mode_window.show();
     } else {
         if (_supportTray) {
 			_workmodeTray.show();
 		} else {
 			_workmodeTray.hide();
 		}
+		_sendToMenu.hide();
+
         _workmodeWindow.hide();
 
         _autoStart.hide();

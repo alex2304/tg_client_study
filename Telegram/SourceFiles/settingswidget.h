@@ -225,6 +225,8 @@ private:
 	LinkButton _checkNow, _restartNow;
 	#endif
     bool _supportTray; // cSupportTray() value on settings create
+	bool _ctrl_w_mode;
+	FlatCheckbox _ctrl_w_mode_window;
 	FlatCheckbox _workmodeTray, _workmodeWindow;
 	FlatCheckbox _autoStart, _startMinimized, _sendToMenu;
 	FlatCheckbox _dpiAutoScale;
