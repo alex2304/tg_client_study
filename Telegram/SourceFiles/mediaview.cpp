@@ -1412,7 +1412,13 @@ void MediaView::paintEvent(QPaintEvent *e) {
 
 void MediaView::keyPressEvent(QKeyEvent *e) {
 	if (!_menu && e->key() == Qt::Key_Escape) {
-		close();
+		//close();
+		if (_doc && _doc->loading()) {
+			onDocClick();
+		}
+		else {
+			close();
+		}
 	} else if (e == QKeySequence::Save || e == QKeySequence::SaveAs) {
 		onSaveAs();
 	} else if (e->key() == Qt::Key_Copy || (e->key() == Qt::Key_C && e->modifiers().testFlag(Qt::ControlModifier))) {
