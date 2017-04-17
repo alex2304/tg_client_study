@@ -143,7 +143,7 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 , _workmodeTray(this, lang(lng_settings_workmode_tray), (cWorkMode() == dbiwmTrayOnly || cWorkMode() == dbiwmWindowAndTray))
 , _workmodeWindow(this, lang(lng_settings_workmode_window), (cWorkMode() == dbiwmWindowOnly || cWorkMode() == dbiwmWindowAndTray))
 
-, _ctrl_w_mode_window(this, lang(lng_settings_ctrl_w_mode), _ctrl_w_mode)
+, _closeByCtrlW(this, lang(lng_settings_ctrl_w_mode), cCloseWindowByCtrlW())
 
 , _autoStart(this, lang(lng_settings_auto_start), cAutoStart())
 , _startMinimized(this, lang(lng_settings_start_min), cStartMinimized())
@@ -259,7 +259,7 @@ SettingsInner::SettingsInner(SettingsWidget *parent) : TWidget(parent)
 	connect(&_autoStart, SIGNAL(changed()), this, SLOT(onAutoStart()));
 	connect(&_startMinimized, SIGNAL(changed()), this, SLOT(onStartMinimized()));
 	connect(&_sendToMenu, SIGNAL(changed()), this, SLOT(onSendToMenu()));
-	//connect(&_ctrl_w_mode_window, SIGNAL(changed()), this, )
+	connect(&_closeByCtrlW, SIGNAL(changed()), this, SLOT(onCtrlWModeChanged()));
 
 	connect(&_dpiAutoScale, SIGNAL(changed()), this, SLOT(onScaleAuto()));
 	connect(&_dpiSlider, SIGNAL(changed(int32)), this, SLOT(onScaleChange()));
@@ -491,7 +491,7 @@ void SettingsInner::paintEvent(QPaintEvent *e) {
         top += _autoStart.height() + st::setLittleSkip;
         top += _startMinimized.height() + st::setSectionSkip;
 
-		top += _ctrl_w_mode_window.height() + st::setSectionSkip;
+		top += _closeByCtrlW.height() + st::setSectionSkip;
 
 
 		top += _sendToMenu.height();
@@ -714,7 +714,7 @@ void SettingsInner::resizeEvent(QResizeEvent *e) {
         _autoStart.move(_left, top); top += _autoStart.height() + st::setLittleSkip;
         _startMinimized.move(_left, top); top += _startMinimized.height() + st::setSectionSkip;
 
-		_ctrl_w_mode_window.move(_left, top); top += _ctrl_w_mode_window.height() + st::setLittleSkip;
+		_closeByCtrlW.move(_left, top); top += _closeByCtrlW.height() + st::setLittleSkip;
 
 
 		_sendToMenu.move(_left, top); top += _sendToMenu.height();
@@ -1063,7 +1063,7 @@ void SettingsInner::showAll() {
 
 		_sendToMenu.show();
 
-		_ctrl_w_mode_window.show();
+		_closeByCtrlW.show();
     } else {
         if (_supportTray) {
 			_workmodeTray.show();
@@ -1442,6 +1442,12 @@ void SettingsInner::onStartMinimized() {
 void SettingsInner::onSendToMenu() {
 	cSetSendToMenu(_sendToMenu.checked());
 	psSendToMenu(_sendToMenu.checked());
+	Local::writeSettings();
+}
+
+void SettingsInner::onCtrlWModeChanged() {
+	
+	cSetCloseWindowByCtrlW(_closeByCtrlW.checked());
 	Local::writeSettings();
 }
 
