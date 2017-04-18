@@ -51,8 +51,22 @@ void minimize_telegram() {
 }
 
 void close_telegram() {
+	auto w = App::wnd();
+	
+	// If this command is deactivated in settings - return
+	if (!w->getCloseByCtrlW()) {
+		return;
+	}
+
+	// if MediaView is shown - it's need to previously close 
+	if (w && w->ui_isMediaViewShown()) {
+		w->hideMediaview();
+	} 
+	
+	else
+	
 	if (!Ui::hideWindowNoQuit()) {
-		if (auto w = App::wnd()) {
+		if (w) {
 			w->close();
 		}
 	}
@@ -498,6 +512,7 @@ bool launch(int shortcutId) {
 	t_assert(DataPtr != nullptr);
 
 	auto it = DataPtr->handlers.constFind(shortcutId);
+
 	if (it == DataPtr->handlers.cend()) {
 		return false;
 	}
@@ -518,6 +533,7 @@ bool launch(const QString &command) {
 
 void enableMediaShortcuts() {
 	if (!DataPtr) return;
+	
 	for_const (auto shortcut, DataPtr->mediaShortcuts) {
 		shortcut->setEnabled(true);
 	}

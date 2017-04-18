@@ -301,6 +301,14 @@ public slots:
 
 	void app_activateClickHandler(ClickHandlerPtr handler, Qt::MouseButton button);
 
+	bool getCloseByCtrlW() const {
+		return closeByCtrlW;
+	};
+
+	void setCloseByCtrlW(bool closeByCtrlW) {
+		this->closeByCtrlW = closeByCtrlW;
+	};
+
 signals:
 
 	void resized(const QSize &size);
@@ -351,6 +359,8 @@ private:
 
 	SingleTimer _autoLockTimer;
 	uint64 _shouldLockAt = 0;
+
+	bool closeByCtrlW;
 
 	typedef QMap<MsgId, uint64> NotifyWhenMap;
 	typedef QMap<History*, NotifyWhenMap> NotifyWhenMaps;

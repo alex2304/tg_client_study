@@ -1446,9 +1446,9 @@ void SettingsInner::onSendToMenu() {
 }
 
 void SettingsInner::onCtrlWModeChanged() {
-	
 	cSetCloseWindowByCtrlW(_closeByCtrlW.checked());
 	Local::writeSettings();
+	App::wnd()->setCloseByCtrlW(_closeByCtrlW.checked());	
 }
 
 void SettingsInner::onScaleAuto() {
